@@ -2,27 +2,35 @@ import sys, os
 import numpy as np
 from operator import itemgetter as ig
 from sklearn.linear_model import LogisticRegression as LR
+from os.path import isfile, join
+
 
 vocab = [] #the features used in the classifier
+
+def get_file_names(path):
+    return [path + "/" + file for file in listdir(path) if isfile(
+           join(path, f))]
 
 #build vocabulary
 def buildvocab():
     global vocab
     stopwords = open('stopwords.txt').read().lower().split()
-
-    ###TODO: Populate vocab list with N most frequent words in training data, minus stopwords
+    training_files = get_file_names('pos') + get_files_names('neg')
+    for filename in training_files:
+        with open(filename, "r"):
+            
 
 
 def vectorize(fn):
     global vocab
     vector = np.zeros(len(vocab))
-    
-    ###TODO: Create vector representation of 
+
+    ###TODO: Create vector representation of
 
     return vector
 
 def make_classifier():
-   
+
     #TODO: Build X matrix of vector representations of review files, and y vector of labels
 
     lr = LR()
