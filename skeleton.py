@@ -1,16 +1,45 @@
-import sys, os
+import os
+import sys
 import numpy as np
 from operator import itemgetter as ig
 from sklearn.linear_model import LogisticRegression as LR
+import operator
 
 vocab = [] #the features used in the classifier
 
 #build vocabulary
 def buildvocab():
     global vocab
-    stopwords = open('stopwords.txt').read().lower().split()
+    neg_words = {}; pos_words = {}
+    neg_text = ""; pos_text = ""
+    neg_sorted = []; pos_sorted = []
+    maps = {"neg_words": neg_words, "pos_words": pos_words,
+            "neg_text": neg_text, "pos_text": pos_text,
+            "neg_sorted": neg_sorted, "pos_sorted": pos_sorted}
 
-    ###TODO: Populate vocab list with N most frequent words in training data, minus stopwords
+    stopwords = open('stopwords.txt').read().lower().split()
+    here = os.getcwd()
+    vals = ["pos", "neg"]
+    for val in vals:
+        for afile in os.listdir(here + "/" + val):
+            if afile.endswith(".txt"):
+                maps[val + '_text'] = maps[val + '_text'] + \
+                    open(here + '/' + val + '/' + afile, 'r').read()
+
+        for word in maps[val + '_text'].split():
+            if word in stopwords:
+                pass
+            elif word in maps[val + '_words']:
+                maps[val + '_words'][word] += 1
+            else:
+                maps[val + '_words'][word] = 1
+
+        maps[val + "_sorted"] = sorted(maps[val + '_words'].iteritems(), key=operator.itemgetter(1))
+        maps[val + "_sorted"] = maps[val + "_sorted"][-100:]
+        maps[val + "_sorted"].reverse()
+
+        print val + ":" + str(maps[val + "_sorted"])
+
 
 
 def vectorize(fn):
@@ -58,5 +87,5 @@ def test_classifier(lr):
 
 if __name__=='__main__':
     buildvocab()
-    lr = make_classifier()
-    test_classifier(lr)
+    # lr = make_classifier()
+    # test_classifier(lr)
