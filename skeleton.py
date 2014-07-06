@@ -6,7 +6,7 @@ from os.path import isfile, join
 from collections import OrderedDict
 
 
-vocab = []  # the features used in the classifier
+vocab = OrderedDict()  # the features used in the classifier
 stop_words = {}
 
 
@@ -56,10 +56,9 @@ def buildvocab(num_words):
         print "Initial file processing {:.2%} percent done\r".format(
             i/float(num_files))
 
-    word_count = OrderedDict(sorted(word_count.items(), key=lambda t: t[1],
-                        reverse=True))
-    vocab = word_count[0:num_words]
-    return None
+    word_count = sorted(word_count.items(), key=lambda t: t[1], reverse=True)
+    vocab = OrderedDict(word_count[0:num_words])
+    return vocab
 
 
 def vectorize(inputfile):
