@@ -1,24 +1,61 @@
-import sys, os
+import sys, os, re
 import numpy as np
 from operator import itemgetter as ig
 from sklearn.linear_model import LogisticRegression as LR
 from os.path import isfile, join
+from collections import OrderedDict
 
 
-vocab = [] #the features used in the classifier
+vocab = OrderedDict()  # the features used in the classifier
+stop_words = {}
+
 
 def get_file_names(path):
-    return [path + "/" + file for file in listdir(path) if isfile(
-           join(path, f))]
+    return [path + "/" + file for file in os.listdir(path) if isfile(
+        join(path, file))]
 
-#build vocabulary
+
+def build_stop_words():
+    global stop_words
+    stop_words = open('stopwords.txt').read().lower().split()
+    stop_words = dict(zip(stop_words, stop_words))
+
+
+def no_punc(in_string):
+    return re.sub("[^\w]", " ", in_string)
+
+
+def get_words_no_punc(inputfile):
+    word_list = []
+    with open(inputfile, "r") as infile:
+        file_words = infile.read().lower()
+        word_list.append(no_punc(file_words).split())
+    # print word_list
+    return word_list
+
+
+# build vocabulary
 def buildvocab():
     global vocab
-    stopwords = open('stopwords.txt').read().lower().split()
-    training_files = get_file_names('pos') + get_files_names('neg')
+    global stop_words
+    build_stop_words()
+    training_files = get_file_names('pos') + get_file_names('neg')
+    word_count = {}
     for filename in training_files:
-        with open(filename, "r"):
-            
+        file_words = get_words_no_punc(filename)
+        for word in file_words[0]:
+            if word not in stop_words.keys():
+                if not word.isdigit():
+                    if len(word) > 1:
+                        if word not in word_count.keys():
+                            word_count[word] = 1
+                        else:
+                            word_count[word] += 1
+
+    vocab = OrderedDict(sorted(word_count.items(), key=lambda t: t[1]))
+    # print vocab
+    # print len(vocab)
+    return None
 
 
 def vectorize(fn):
@@ -66,5 +103,5 @@ def test_classifier(lr):
 
 if __name__=='__main__':
     buildvocab()
-    lr = make_classifier()
-    test_classifier(lr)
+    #lr = make_classifier()
+    #test_classifier(lr)
