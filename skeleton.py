@@ -26,11 +26,17 @@ def no_punc(in_string):
 
 
 def get_words_no_punc(inputfile):
-    word_list = []
+    file_word_list = []
+    final_word_list = []
     with open(inputfile, "r") as infile:
-        file_words = infile.read().lower()
-        word_list.append(no_punc(file_words).split())
-    return word_list
+        file_word_list = infile.read().lower().split()
+    for word in file_word_list:
+        if len(word) > 2:
+            word = no_punc(word)
+            if word not in stop_words.keys():
+                if not word.isdigit():
+                    final_word_list.append(word)
+    return final_word_list
 
 
 # build vocabulary
@@ -39,26 +45,17 @@ def buildvocab(num_words):
     global stop_words
     build_stop_words()
     training_files = get_file_names('pos') + get_file_names('neg')
-    num_files = len(training_files)
-    word_count = OrderedDict()
-    i = 0
+    word_list = []
     for filename in training_files:
-        file_words = get_words_no_punc(filename)
-        for word in file_words[0]:
-            if word not in stop_words.keys():
-                if not word.isdigit():
-                    if len(word) > 1:
-                        if word not in word_count.keys():
-                            word_count[word] = 1
-                        else:
-                            word_count[word] += 1
-        i += 1
-        print "Initial file processing {:.2%} percent done\r".format(
-            i/float(num_files))
-
-    word_count = sorted(word_count.items(), key=lambda t: t[1], reverse=True)
-    vocab = OrderedDict(word_count[0:num_words])
-    return vocab
+        word_list = get_words_no_punc(filename)
+        for word in word_list:
+            if word in vocab:
+                vocab[word] += 1
+            else:
+                vocab[word] = 1
+    vocab = sorted(vocab.items(), key=lambda t: t[1], reverse=True)
+    vocab = OrderedDict(vocab[0:num_words])
+    return None
 
 
 def vectorize(inputfile):
@@ -67,7 +64,7 @@ def vectorize(inputfile):
 
     words = get_words_no_punc(inputfile)
     for word in words:
-        if word in vocab.keys():
+        if word in vocab:
             vector[vocab.keys().index(word)] += 1
 
     return vector
@@ -90,7 +87,7 @@ def make_classifier():
             i/float(m))
     for j in xrange(m_neg):
         X[j + m_pos, :] = vectorize(neg_files[j])
-        print "Negative review processing{:.2%} percent done\r".format(
+        print "Negative review processing {:.2%} percent done\r".format(
             (j + m_pos)/float(m))
 
     print "y is {}".format(y)
@@ -128,6 +125,6 @@ def test_classifier(lr):
 
 
 if __name__=='__main__':
-    buildvocab(100)
+    buildvocab(10000)
     lr = make_classifier()
     test_classifier(lr)
